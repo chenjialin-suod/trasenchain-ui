@@ -1,69 +1,5 @@
 <template>
     <div class="app-container">
-      <el-header>
-        <el-row :gutter="50" class="panel-group">
-
-          <el-col :xs="12" :sm="12" :lg="5" class="card-panel-col">
-            <div class="card-panel" @click="handleSetLineChartData('newVisitis')">
-              <div class="card-panel-icon-wrapper icon-people">
-                <svg-icon icon-class="peoples" class-name="card-panel-icon" />
-              </div>
-              <div class="card-panel-description">
-                <div class="card-panel-text">
-                  <el-select v-model="TotalTransaction.groupId" :default-first-option="true" filterable @change="TotalTransactionCount" placeholder="请选择群组">
-                    <el-option v-for="dept in group" :label="dept.groupId" :value="dept.groupId" :key="dept.id"></el-option>
-                  </el-select>
-                </div>
-                <!-- <count-to :start-val="0" :end-val="102400" :duration="2600" class="card-panel-num"/> -->
-              </div>
-            </div>
-          </el-col>
-
-          <el-col :xs="12" :sm="12" :lg="5" class="card-panel-col">
-            <div class="card-panel" @click="handleSetLineChartData('messages')">
-              <div class="card-panel-icon-wrapper icon-message">
-                <svg-icon icon-class="message" class-name="card-panel-icon" />
-              </div>
-              <div class="card-panel-description">
-                <div class="card-panel-text">
-                  块高数量
-                </div>
-                <count-to :start-val="0" :end-val="this.Count.blockNumber" :duration="3000" class="card-panel-num" />
-              </div>
-            </div>
-          </el-col>
-
-          <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
-            <div class="card-panel" @click="handleSetLineChartData('purchases')">
-              <div class="card-panel-icon-wrapper icon-money">
-                <svg-icon icon-class="shopping" class-name="card-panel-icon" />
-              </div>
-              <div class="card-panel-description">
-                <div class="card-panel-text">
-                  异常区块数量
-                </div>
-                <count-to :start-val="0" :end-val="this.Count.failedTransactionCount" :duration="3200" class="card-panel-num" />
-              </div>
-            </div>
-          </el-col>
-          
-          <el-col :xs="12" :sm="12" :lg="6" class="card-panel-col">
-            <div class="card-panel" @click="handleSetLineChartData('purchases')">
-              <div class="card-panel-icon-wrapper icon-money">
-                <svg-icon icon-class="money" class-name="card-panel-icon" />
-              </div>
-              <div class="card-panel-description">
-                <div class="card-panel-text">
-                  异常交易数量
-                </div>
-                <count-to :start-val="0" :end-val="this.pendingTxSize" :duration="3200" class="card-panel-num" />
-              </div>
-            </div>
-          </el-col>
-
-        </el-row>
-      </el-header>
-      <el-main>
         <el-row :gutter="20">
           <el-col :span="5" :xs="24">
             <el-form :model="nodes" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
@@ -126,8 +62,18 @@
               </el-form-item>
             </el-form>
             <el-table v-loading="loading" :data="groupList" @selection-change="handleSelectionChange">
-              <el-table-column type="selection" width="55" align="center" />
-              <el-table-column label="群组编号" prop="groupId" width="120" />
+              <el-table-column type="selection" width="55" align="center"/>
+              <el-table-column label="群组编号" prop="groupId" width="120">
+                <template slot-scope="scope">
+                  <el-button
+                    size="mini"
+                    type="text"
+                    @click="Network(scope.row.groupId)"
+                    v-hasPermi="['system:network:groupId']"
+                    >{{scope.row.groupId}}
+                  </el-button>
+                </template>
+              </el-table-column>
               <el-table-column label="是否开启国密" align="center" width="100">
                 <template slot-scope="scope">
                   <el-tag v-if="scope.row.smCrypto===1" type="success">开启</el-tag>
@@ -147,14 +93,14 @@
               </el-table-column>
               <el-table-column label="详细信息" align="center" class-name="small-padding fixed-width">
                 <template slot-scope="scope">
-                  <el-descriptions class="margin-top" :column="3" size="mini" border>
-                    <el-descriptions-item v-if="scope.row.sysDept.length!==0" v-for="dept in scope.row.sysDept">
+                  <el-descriptions class="margin-top" :column="1" size="mini" border>
+                    <!-- <el-descriptions-item v-if="scope.row.sysDept.length!==0" v-for="dept in scope.row.sysDept">
                         <template slot="label">
                           <i class="el-icon-user"></i>
                           部门
                         </template>
                         {{dept.deptName}}
-                    </el-descriptions-item>
+                    </el-descriptions-item> -->
                     <el-descriptions-item v-if="scope.row.webaseNetworkVO.length!==0" v-for="webase in scope.row.webaseNetworkVO">
                         <template slot="label">
                           <i class="el-icon-user"></i>
@@ -202,7 +148,6 @@
             />
           </el-col>
         </el-row>
-      </el-main>
       <!-- 添加或修改节点配置对话框 -->
       <el-dialog :title="title" :visible.sync="nodeopen" width="600px" append-to-body>
         <el-form ref="form" :model="formlist" :rules="rules" label-width="100px">
@@ -310,13 +255,24 @@
           </el-row>
         </el-form>
       </el-dialog>
+
+      <el-dialog title="节点信息" :visible.sync="Peeropen" width="600px" append-to-body>
+            <el-table
+            v-if="refreshTable"
+            v-loading="loading"
+            :data="PeerList"
+            >
+                <el-table-column prop="endPoint" label="节点端口" align="center"></el-table-column>
+                <el-table-column prop="p2pNodeID" label="节点地址"></el-table-column>
+            </el-table>
+      </el-dialog>
     </div>
   </template>
   
   <script>
   import { listGroup,delNetwork,delGroup,listNode,WebaseNetwork,setGroupNetwork,editNetWork,addGrouplist,getNetworkDept,addDeptNetwork} from "@/api/system/group";
   import { groupList } from "@/api/system/chain";
-  import { getTotalTransactionCount,getPendingTxSize } from "@/api/system/blocknumbe";
+  import { getNetwork } from "@/api/system/blocknumbe";
   import { listDept } from "@/api/system/dept";
   import { Loading } from 'element-ui';
   import CountTo from 'vue-count-to';
@@ -333,6 +289,7 @@
         loading: true,
         loadingdata: true,
         loadingNode: true,
+        Peeropen: false,
         open:false,
         // 重新渲染表格状态
         refreshTable: true,
@@ -382,6 +339,7 @@
         dateParams: [],
         datechain: [],
         group: [],
+        PeerList: [],
         formlist: {},
         // 查询参数
         queryParams: {
@@ -464,11 +422,6 @@
               this.loading = false;
             }
           );
-          groupList().then(response => {
-              this.group = response;
-              this.TotalTransaction.groupId =  this.group[0].groupId
-              this.TotalTransactionCount(this.TotalTransaction)
-          })
           loadingInstance.close();  
         })
       },
@@ -562,24 +515,6 @@
       grouphandleQuery(){
         this.getGroup()
       },
-      //统计数据查询
-      TotalTransactionCount(value){
-        this.Count = [];
-         let loadingInstance = Loading.service(this.options);
-         this.$nextTick(() =>{
-          getTotalTransactionCount(this.TotalTransaction).then(response =>{
-            this.Count = response.data.totalTransactionCount
-            this.Count.blockNumber  = Number(this.Count.blockNumber)
-            this.Count.failedTransactionCount  = Number(this.Count.failedTransactionCount)
-            this.Count.transactionCount  = Number(this.Count.transactionCount)
-          });
-          getPendingTxSize(this.TotalTransaction).then(response =>{
-            // console.log(response)
-            this.pendingTxSize = Number (response.data.pendingTxSize)
-          })
-          loadingInstance.close();
-         })
-      },
       //部门绑定
       nodeDef(row){
         this.options.text = "部门绑定";
@@ -599,6 +534,18 @@
                 this.NodeDefpen = true;
             })
         loadingInstance.close();  
+      },
+      //查询群组下的节点信息
+      Network(groupId){
+        this.options.text = "查询中";
+        let loadingInstance = Loading.service(this.options);
+        this.$nextTick(() =>{
+          getNetwork(groupId).then(rps =>{
+            this.PeerList = rps.data.result.peers;
+            this.Peeropen = true;
+            loadingInstance.close();  
+          })
+        })
       },
       /** 提交按钮 */
       deptsubmitForm: function(){
@@ -705,118 +652,5 @@
     }
   };
   </script>
-
-<style lang="scss" scoped>
-.el-main {
-  margin-top: 80px;
-}
-.panel-group {
-  margin-top: 0px;
-
-  .card-panel-col {
-    margin-bottom: 32px;
-  }
-
-  .card-panel {
-    height: 108px;
-    cursor: pointer;
-    font-size: 12px;
-    position: relative;
-    overflow: hidden;
-    color: #666;
-    background: #fff;
-    box-shadow: 4px 4px 40px rgba(0, 0, 0, .08);
-    border-color: rgba(0, 0, 0, .05);
-
-    &:hover {
-      .card-panel-icon-wrapper {
-        color: #fff;
-      }
-
-      .icon-people {
-        background: #40c9c6;
-      }
-
-      .icon-message {
-        background: #36a3f7;
-      }
-
-      .icon-money {
-        background: #f4516c;
-      }
-
-      .icon-shopping {
-        background: #34bfa3
-      }
-    }
-
-    .icon-people {
-      color: #40c9c6;
-    }
-
-    .icon-message {
-      color: #36a3f7;
-    }
-
-    .icon-money {
-      color: #f4516c;
-    }
-
-    .icon-shopping {
-      color: #34bfa3
-    }
-
-    .card-panel-icon-wrapper {
-      float: left;
-      margin: 14px 0 0 14px;
-      padding: 16px;
-      transition: all 0.38s ease-out;
-      border-radius: 6px;
-    }
-
-    .card-panel-icon {
-      float: left;
-      font-size: 48px;
-    }
-
-    .card-panel-description {
-      float: right;
-      font-weight: bold;
-      margin: 26px;
-      margin-left: 0px;
-
-      .card-panel-text {
-        line-height: 18px;
-        color: rgba(0, 0, 0, 0.45);
-        font-size: 16px;
-        margin-bottom: 12px;
-      }
-
-      .card-panel-num {
-        font-size: 20px;
-      }
-    }
-  }
-}
-
-@media (max-width:550px) {
-  .card-panel-description {
-    display: none;
-  }
-
-  .card-panel-icon-wrapper {
-    float: none !important;
-    width: 100%;
-    height: 100%;
-    margin: 0 !important;
-
-    .svg-icon {
-      display: block;
-      margin: 14px auto !important;
-      float: none !important;
-    }
-  }
-}
-</style>
   
   

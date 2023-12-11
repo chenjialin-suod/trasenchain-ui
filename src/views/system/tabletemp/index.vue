@@ -10,10 +10,10 @@
                 @keyup.enter.native="handleQuery"
                 />
             </el-form-item>
-            <el-form-item label="数据表名" prop="groupId">
+            <el-form-item label="数据名" prop="groupId">
                 <el-input
                 v-model="queryParams.tableName"
-                placeholder="数据表名"
+                placeholder="数据名"
                 clearable
                 size="small"
                 @keyup.enter.native="handleQuery"
@@ -30,7 +30,7 @@
             :data="Betalist"
             >
                 <el-table-column prop="groupId" label="所属群组" width="160" align="center"></el-table-column>
-                <el-table-column prop="tableName" width="100" label="数据表名"></el-table-column>
+                <el-table-column prop="tableName" width="100" label="数据名"></el-table-column>
                 <el-table-column prop="tableId" label="数据key"></el-table-column>
                 <el-table-column label="上链时间" align="center" width="160" prop="createTime">
                     <template slot-scope="scope">

@@ -71,3 +71,11 @@ export function getData(data){
     params: data
   })
 }
+
+//查询一个群组的网络连接信息（该节点的群组和链接信息）
+export function getNetwork(groupId){
+  return request({
+    url: '/chain/getNetwork/'+groupId,
+    method: 'get'
+  })
+}
