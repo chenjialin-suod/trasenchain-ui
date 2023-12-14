@@ -61,7 +61,7 @@ export default {
       this.chart = echarts.init(this.$el, 'macarons')
       this.setOptions(this.chartData)
     },
-    setOptions({ } = {}) {
+    setOptions([] = []) {
       this.chart.setOption({
         xAxis: {
           data: this.chartData.map(obj => obj.evertday),
