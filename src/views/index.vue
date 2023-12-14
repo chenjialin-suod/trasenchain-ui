@@ -59,20 +59,27 @@
             </el-col>
         </el-row> 
       </el-col>
+      <el-col :span="16">
+        <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:25px;margin-left:25px;">
+          <line-chart :chart-data="BlockNumbeCount" />
+        </el-row>
+      </el-col>
     </el-row>
   </div>
 </template>
 
 <script>
 import { groupList } from "@/api/system/chain";
-import { getTotalTransactionCount,getPendingTxSize } from "@/api/system/blocknumbe";
+import { getTotalTransactionCount,getPendingTxSize,getBlockNumbeCount } from "@/api/system/blocknumbe";
 import CountTo from 'vue-count-to';
 import { Loading } from 'element-ui';
+import LineChart from './dashboard/LineChart'
 
 export default {
     name: "Index",
     components: {
-      CountTo
+      CountTo,
+      LineChart
     },
     data() {
       return {
@@ -82,6 +89,7 @@ export default {
         nodeList: [],
         //文件列表
         fileList: [],
+        BlockNumbeCount:[],
         //节点
         nodes: {
           node: undefined
@@ -130,6 +138,9 @@ export default {
               this.group = response;
               this.TotalTransaction.groupId =  this.group[0].groupId
               this.TotalTransactionCount(this.TotalTransaction)
+              getBlockNumbeCount(this.TotalTransaction.groupId).then(rps =>{
+                this.BlockNumbeCount = rps.data
+              })
           })
           loadingInstance.close();  
         })

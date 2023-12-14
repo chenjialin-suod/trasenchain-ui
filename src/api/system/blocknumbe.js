@@ -79,3 +79,12 @@ export function getNetwork(groupId){
     method: 'get'
   })
 }
+
+
+//查询最近7天的区块数据
+export function getBlockNumbeCount(groupId){
+  return request({
+    url: '/chain/getBlockNumbeCount/'+groupId,
+    method: 'get'
+  })
+}

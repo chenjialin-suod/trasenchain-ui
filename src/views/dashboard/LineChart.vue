@@ -20,14 +20,14 @@ export default {
     },
     height: {
       type: String,
-      default: '350px'
+      default: '232px'
     },
     autoResize: {
       type: Boolean,
       default: true
     },
     chartData: {
-      type: Object,
+      type: [],
       required: true
     }
   },
@@ -61,10 +61,10 @@ export default {
       this.chart = echarts.init(this.$el, 'macarons')
       this.setOptions(this.chartData)
     },
-    setOptions({ expectedData, actualData } = {}) {
+    setOptions({ } = {}) {
       this.chart.setOption({
         xAxis: {
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          data: this.chartData.map(obj => obj.evertday),
           boundaryGap: false,
           axisTick: {
             show: false
@@ -90,10 +90,10 @@ export default {
           }
         },
         legend: {
-          data: ['expected', 'actual']
+          data: ['区高']
         },
         series: [{
-          name: 'expected', itemStyle: {
+          name: '区高', itemStyle: {
             normal: {
               color: '#FF005A',
               lineStyle: {
@@ -104,29 +104,9 @@ export default {
           },
           smooth: true,
           type: 'line',
-          data: expectedData,
+          data: this.chartData.map(obj => obj.blockNumberCount),
           animationDuration: 2800,
           animationEasing: 'cubicInOut'
-        },
-        {
-          name: 'actual',
-          smooth: true,
-          type: 'line',
-          itemStyle: {
-            normal: {
-              color: '#3888fa',
-              lineStyle: {
-                color: '#3888fa',
-                width: 2
-              },
-              areaStyle: {
-                color: '#f3f8ff'
-              }
-            }
-          },
-          data: actualData,
-          animationDuration: 2800,
-          animationEasing: 'quadraticOut'
         }]
       })
     }
