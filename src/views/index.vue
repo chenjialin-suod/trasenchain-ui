@@ -61,16 +61,111 @@
       </el-col>
       <el-col :span="16">
         <el-row style="background:#fff;padding:16px 16px 0;margin-bottom:25px;margin-left:25px;">
+          <el-row :gutter="20">
+            <el-col :span="6"><div class="grid-content bg-purple">
+              关键性指标
+            </div></el-col>
+            <el-col :span="6" :offset="12"><div class="grid-content bg-purple">
+              <el-tag type="success">最近有交易的7天交易量</el-tag>
+            </div></el-col>
+          </el-row>
           <line-chart :chart-data="BlockNumbeCount" />
         </el-row>
       </el-col>
     </el-row>
+    <el-row>
+      <el-col class="card-panel-col">
+        <el-table
+          height="280"
+          border
+          :data="tableData"
+          style="width: 100%;margin-top: -38px">
+          <el-table-column
+            prop="nodeID"
+            label="节点（地址）">
+          </el-table-column>
+          <el-table-column
+            label="区高" width="180">
+            {{Count.blockNumber}}
+          </el-table-column>
+          <el-table-column
+            label="状态" width="180">
+              <template slot-scope="scope">
+                  <el-tag v-if="scope.row.weight===1" type="success">正常</el-tag>
+                  <el-tag v-if="scope.row.weight!==1" type="danger">异常</el-tag>
+                </template>
+          </el-table-column>
+        </el-table>
+      </el-col>
+    </el-row>
+    <el-row style="margin-top: 20px">
+      <el-col :span="11" class="card-panel-col">
+        <el-table
+          height="270"
+          border
+          :data="BlockList"
+          style="width: 100%">
+          <el-table-column
+            label="区块">
+            <template slot-scope="scope">
+              区块
+              <el-button
+                size="mini"
+                type="text"
+                @click="BlockHashByNumber(scope.row.groupId,scope.row.blockNumber)"
+                >{{scope.row.blockNumber}}
+              </el-button>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="出块者" prop="userName" width="180">
+          </el-table-column>
+        </el-table>
+      </el-col>
+      <el-col :span="12" :offset="1" class="card-panel-col">
+        <el-table
+          height="270"
+          border
+          :data="BlockList"
+          style="width: 100%">
+          <el-table-column
+            label="交易">
+            <template slot-scope="scope">
+              <el-button
+                size="mini"
+                type="text"
+                @click="BlockHashByNumber(scope.row.groupId,scope.row.txHash)"
+                >{{scope.row.txHash}}
+              </el-button>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="出块时间" width="200">
+            <template slot-scope="scope">
+              <span>{{ parseTime(scope.row.blockTimestamp) }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-col>
+    </el-row>
+
+    <el-dialog title="区块信息" :visible.sync="open" width="800px" append-to-body>
+      <el-descriptions class="margin-top" :column="1" :size="size" border>
+        <el-descriptions-item>
+          <template slot="label">
+            <i class="el-icon-user"></i>
+            区块hash
+          </template>
+          {{BlockHash.blockHashByNumber}}
+        </el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { groupList } from "@/api/system/chain";
-import { getTotalTransactionCount,getPendingTxSize,getBlockNumbeCount } from "@/api/system/blocknumbe";
+import { getTotalTransactionCount,getPendingTxSize,getBlockNumbeCount,getGroupInfoList,getBeta,getBlockHashByNumber } from "@/api/system/blocknumbe";
 import CountTo from 'vue-count-to';
 import { Loading } from 'element-ui';
 import LineChart from './dashboard/LineChart'
@@ -83,12 +178,16 @@ export default {
     },
     data() {
       return {
+        open: false,
         // 群组数据
         groupList: [],
+        BlockHash: [],
         //节点数据
         nodeList: [],
+        BlockList: [],
         //文件列表
         fileList: [],
+        tableData:[],
         BlockNumbeCount:[],
         //节点
         nodes: {
@@ -141,6 +240,9 @@ export default {
               getBlockNumbeCount(this.TotalTransaction.groupId).then(rps =>{
                 this.BlockNumbeCount = rps.data
               })
+              getGroupInfoList(this.TotalTransaction.groupId).then(rps =>{
+                this.tableData = rps.data
+              })
           })
           loadingInstance.close();  
         })
@@ -148,6 +250,9 @@ export default {
       //统计数据查询
       TotalTransactionCount(value){
         this.Count = [];
+        this.BlockNumbeCount =[];
+        this.tableData = [];
+        this.BlockList = [];
          let loadingInstance = Loading.service(this.options);
          this.$nextTick(() =>{
           getTotalTransactionCount(this.TotalTransaction).then(response =>{
@@ -160,8 +265,30 @@ export default {
             // console.log(response)
             this.pendingTxSize = Number (response.data.pendingTxSize)
           })
+          getBlockNumbeCount(this.TotalTransaction.groupId).then(rps =>{
+            this.BlockNumbeCount = rps.data
+          })
+          getGroupInfoList(this.TotalTransaction.groupId).then(rps =>{
+            this.tableData = rps.data
+            getBeta().then(rps =>{
+              this.BlockList = rps.data
+            })
+          })
           loadingInstance.close();
          })
+      },
+      //根据区块高度获取区块哈希
+      BlockHashByNumber(groupId,blockNumber){
+        let data = {
+          groupId:groupId,
+          blockNumber:blockNumber,
+          node: undefined
+        }
+        getBlockHashByNumber(data).then(rps => {
+          this.BlockHash = rps.data
+          this.open = true
+          console.log(rps)
+        })
       }
     }
   };
@@ -183,7 +310,7 @@ export default {
   margin-top: 0px;
 
   .card-panel-col {
-    margin-bottom: 32px;
+    margin-bottom: 60px;
   }
 
   .card-panel {

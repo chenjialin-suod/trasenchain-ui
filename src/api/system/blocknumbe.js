@@ -80,11 +80,35 @@ export function getNetwork(groupId){
   })
 }
 
-
 //查询最近7天的区块数据
 export function getBlockNumbeCount(groupId){
   return request({
     url: '/chain/getBlockNumbeCount/'+groupId,
     method: 'get'
+  })
+}
+
+//获取当前群组的节点信息列表。
+export function getGroupInfoList(groupId){
+  return request({
+    url: '/chain/getGroupInfoList/'+groupId,
+    method: 'get'
+  })
+}
+
+//查询区高数据
+export function getBeta(){
+  return request({
+    url: '/chain/getBeta',
+    method: 'get'
+  })
+}
+
+//查询区高数据
+export function getBlockHashByNumber(data){
+  return request({
+    url: '/chain/getBlockHashByNumber',
+    method: 'post',
+    params: data
   })
 }

@@ -71,10 +71,10 @@ export default {
           }
         },
         grid: {
-          left: 30,
-          right: 10,
-          bottom: 40,
-          top: 30,
+          left: 40,
+          right: 40,
+          bottom: 10,
+          top: 20,
           containLabel: true
         },
         tooltip: {
