@@ -112,3 +112,20 @@ export function getBlockHashByNumber(data){
     params: data
   })
 }
+
+//根据交易哈希获取交易回执信息信息
+export function getTransactionReceipt(data){
+  return request({
+    url: '/chain/getTransactionReceipt',
+    method: 'post',
+    params: data
+  })
+}
+
+//获取最新块高
+export function getBlockHeight(groupId){
+  return request({
+    url: '/chain/getBlockHeight/'+groupId,
+    method: 'get'
+  })
+}

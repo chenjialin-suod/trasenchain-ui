@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-editor-container">
-    <el-row>
+    <el-row style="margin-top: -20px">
       <el-col :span="8">
         <el-row :gutter="20" class="panel-group">
           <el-col :span="12" class="card-panel-col">
@@ -134,7 +134,7 @@
               <el-button
                 size="mini"
                 type="text"
-                @click="BlockHashByNumber(scope.row.groupId,scope.row.txHash)"
+                @click="QueryTxHash(scope.row.groupId,scope.row.txHash)"
                 >{{scope.row.txHash}}
               </el-button>
             </template>
@@ -150,7 +150,7 @@
     </el-row>
 
     <el-dialog title="区块信息" :visible.sync="open" width="800px" append-to-body>
-      <el-descriptions class="margin-top" :column="1" :size="size" border>
+      <el-descriptions class="margin-top" :column="1" border>
         <el-descriptions-item>
           <template slot="label">
             <i class="el-icon-user"></i>
@@ -160,12 +160,24 @@
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
+
+    <el-dialog :visible.sync="open" append-to-body>
+        <el-form ref="form" :model="formlist" label-width="100px">
+            <el-descriptions title="交易信息" class="margin-top" :column="1" border>
+                <el-descriptions-item label="区高">{{formlist.blockNumber}}</el-descriptions-item>
+                <el-descriptions-item label="交易发生的合约地址">{{formlist.contractAddress}}</el-descriptions-item>
+                <el-descriptions-item label="交易发送者地址">{{formlist.from}}</el-descriptions-item>
+                <el-descriptions-item label="交易发送内容">{{formlist.input}}</el-descriptions-item>
+                <el-descriptions-item label="交易返回内容">{{formlist.output}}</el-descriptions-item>
+            </el-descriptions>
+        </el-form>
+      </el-dialog>
   </div>
 </template>
 
 <script>
 import { groupList } from "@/api/system/chain";
-import { getTotalTransactionCount,getPendingTxSize,getBlockNumbeCount,getGroupInfoList,getBeta,getBlockHashByNumber } from "@/api/system/blocknumbe";
+import { getTotalTransactionCount,getPendingTxSize,getBlockNumbeCount,getGroupInfoList,getBeta,getBlockHashByNumber,getTransactionReceipt } from "@/api/system/blocknumbe";
 import CountTo from 'vue-count-to';
 import { Loading } from 'element-ui';
 import LineChart from './dashboard/LineChart'
@@ -189,6 +201,7 @@ export default {
         fileList: [],
         tableData:[],
         BlockNumbeCount:[],
+        formlist: [],
         //节点
         nodes: {
           node: undefined
@@ -279,17 +292,40 @@ export default {
       },
       //根据区块高度获取区块哈希
       BlockHashByNumber(groupId,blockNumber){
-        let data = {
-          groupId:groupId,
-          blockNumber:blockNumber,
-          node: undefined
-        }
-        getBlockHashByNumber(data).then(rps => {
-          this.BlockHash = rps.data
-          this.open = true
-          console.log(rps)
+        let loadingInstance = Loading.service(this.options);
+        this.$nextTick(() =>{
+          let data = {
+            groupId:groupId,
+            blockNumber:blockNumber,
+            node: undefined
+          }
+          getBlockHashByNumber(data).then(rps => {
+            this.BlockHash = rps.data
+            this.open = true
+            console.log(rps)
+          })
+          loadingInstance.close();  
         })
-      }
+      },
+      //查看交易详情
+      QueryTxHash(groupId,txHash){
+            let loadingInstance = Loading.service(this.options);
+            this.$nextTick(() =>{
+                this.TransactionsTo = {
+                    groupId: groupId,
+                    transactionHash: txHash,
+                    withProof: true,
+                    blockId: undefined
+                }
+                getTransactionReceipt(this.TransactionsTo).then(response => {  
+                    // console.log(response) 
+                    // response.data.result.importTime = this.timestampToDateString(response.data.result.importTime);
+                    this.formlist = response.data.result
+                    this.open = true
+                    loadingInstance.close();  
+                })
+            })
+        },
     }
   };
 </script>
