@@ -169,7 +169,7 @@
       </el-col>
     </el-row>
 
-    <el-dialog title="区块信息" :visible.sync="open" width="800px" append-to-body>
+    <el-dialog title="区块信息" :visible.sync="widthopen" width="800px" append-to-body>
       <el-descriptions class="margin-top" :column="1" border>
         <el-descriptions-item>
           <template slot="label">
@@ -211,6 +211,7 @@ export default {
     data() {
       return {
         open: false,
+        widthopen: false,
         // 重新渲染表格状态
         refreshTable: true,
         // 群组数据
@@ -333,8 +334,7 @@ export default {
           }
           getBlockHashByNumber(data).then(rps => {
             this.BlockHash = rps.data
-            this.open = true
-            console.log(rps)
+            this.widthopen = true
           })
           loadingInstance.close();  
         })
