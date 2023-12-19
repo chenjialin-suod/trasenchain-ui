@@ -21,11 +21,7 @@
             {{Count.result}}
           </el-table-column>
           <el-table-column
-            label="状态" width="180">
-              <template slot-scope="scope">
-                  <el-tag v-if="scope.row.weight===1" type="success">正常</el-tag>
-                  <el-tag v-if="scope.row.weight!==1" type="danger">异常</el-tag>
-                </template>
+            label="权重" prop="weight" width="180">
           </el-table-column>
           <el-table-column
             label="操作" align="center" width="180" class-name="small-padding fixed-width">
@@ -34,8 +30,8 @@
                     size="mini"
                     type="text"
                     icon="el-icon-edit"
-                    @click="handleUpdate(scope.row.id)"
-                    v-hasPermi="['system:chain:get']"
+                    @click="AddObserver(scope.row.nodeID)"
+                    v-hasPermi="['system:node:add']"
                 >修改</el-button>
                 </template>
           </el-table-column>
@@ -44,7 +40,7 @@
 </template>
 <script>
 import { groupList } from "@/api/system/chain";
-import { getGroupInfoList,getBeta,getBlockHeight} from "@/api/system/blocknumbe";
+import { getConsensusStatus,getBeta,getBlockHeight,addObserver} from "@/api/system/blocknumbe";
 import { Loading } from 'element-ui';
 export default {
     name: "node",
@@ -115,8 +111,8 @@ export default {
               this.group = response;
               this.TotalTransaction.groupId =  this.group[0].groupId
               this.TotalTransactionCount(this.TotalTransaction)
-              getGroupInfoList(this.TotalTransaction.groupId).then(rps =>{
-                this.tableData = rps.data
+              getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
+                this.tableData = rps.data.sealerList
               })
           })
           loadingInstance.close();  
@@ -133,8 +129,8 @@ export default {
             getBlockHeight(this.TotalTransaction.groupId).then(rps =>{
                 this.Count.result = rps.data.result
             })
-            getGroupInfoList(this.TotalTransaction.groupId).then(rps =>{
-                this.tableData = rps.data
+            getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
+                this.tableData = rps.data.sealerList
                 getBeta().then(rps =>{
                 this.BlockList = rps.data
                 })
@@ -142,6 +138,16 @@ export default {
             })
             this.loading = false;
          })
+      },
+      //修改节点状态
+      AddObserver(nodeId){
+        let data = {
+          nodeId:nodeId,
+          groupId:this.TotalTransaction.groupId
+        }
+        addObserver(data).then(rps =>{
+          console.log(rps)
+        })
       }
     }
   };

@@ -88,10 +88,35 @@ export function getBlockNumbeCount(groupId){
   })
 }
 
-//获取当前群组的节点信息列表。
-export function getGroupInfoList(groupId){
+// //获取当前群组的节点信息列表。
+// export function getGroupInfoList(groupId){
+//   return request({
+//     url: '/chain/getGroupInfoList/'+groupId,
+//     method: 'get'
+//   })
+// }
+
+//获取当前群组的节点信息列表--共识
+export function getConsensusStatus(groupId){
   return request({
-    url: '/chain/getGroupInfoList/'+groupId,
+    url: '/chain/getConsensusStatus/'+groupId,
+    method: 'get'
+  })
+}
+
+//将指定节点添加为观察节点
+export function addObserver(data){
+  return request({
+    url: '/chain/addObserver',
+    method: 'post',
+    params: data
+  })
+}
+
+//获取当前群组的节点信息列表--观察
+export function getObserverList(groupId){
+  return request({
+    url: '/chain/getObserverList/'+groupId,
     method: 'get'
   })
 }

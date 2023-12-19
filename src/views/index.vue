@@ -76,24 +76,44 @@
     <el-row>
       <el-col class="card-panel-col">
         <el-table
-          height="280"
+          v-if="refreshTable"
+          height="250"
           border
           :data="tableData"
           style="width: 100%;margin-top: -38px">
           <el-table-column
             prop="nodeID"
-            label="节点（地址）">
+            label="共识节点">
           </el-table-column>
           <el-table-column
             label="区高" width="180">
-            {{Count.blockNumber}}
+            <template>
+              {{Count.blockNumber}}
+            </template>
           </el-table-column>
           <el-table-column
-            label="状态" width="180">
-              <template slot-scope="scope">
-                  <el-tag v-if="scope.row.weight===1" type="success">正常</el-tag>
-                  <el-tag v-if="scope.row.weight!==1" type="danger">异常</el-tag>
-                </template>
+            label="权重" prop="weight" width="180">
+          </el-table-column>
+        </el-table>
+      </el-col>
+    </el-row>
+    <el-row style="margin-top: 40px">
+      <el-col class="card-panel-col">
+        <el-table
+          v-if="refreshTable"
+          height="250"
+          border
+          :data="ObserverList"
+          style="width: 100%;margin-top: -38px">
+          <el-table-column
+            prop="nodeID"
+            label="观察节点">
+          </el-table-column>
+          <el-table-column
+            label="区高" width="180">
+            <template>
+              {{Count.blockNumber}}
+            </template>
           </el-table-column>
         </el-table>
       </el-col>
@@ -177,7 +197,7 @@
 
 <script>
 import { groupList } from "@/api/system/chain";
-import { getTotalTransactionCount,getPendingTxSize,getBlockNumbeCount,getGroupInfoList,getBeta,getBlockHashByNumber,getTransactionReceipt } from "@/api/system/blocknumbe";
+import { getTotalTransactionCount,getPendingTxSize,getBlockNumbeCount,getConsensusStatus,getBeta,getBlockHashByNumber,getTransactionReceipt,getObserverList } from "@/api/system/blocknumbe";
 import CountTo from 'vue-count-to';
 import { Loading } from 'element-ui';
 import LineChart from './dashboard/LineChart'
@@ -191,6 +211,8 @@ export default {
     data() {
       return {
         open: false,
+        // 重新渲染表格状态
+        refreshTable: true,
         // 群组数据
         groupList: [],
         BlockHash: [],
@@ -200,6 +222,7 @@ export default {
         //文件列表
         fileList: [],
         tableData:[],
+        ObserverList:[],
         BlockNumbeCount:[],
         formlist: [],
         //节点
@@ -253,8 +276,12 @@ export default {
               getBlockNumbeCount(this.TotalTransaction.groupId).then(rps =>{
                 this.BlockNumbeCount = rps.data
               })
-              getGroupInfoList(this.TotalTransaction.groupId).then(rps =>{
-                this.tableData = rps.data
+              getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
+                this.tableData = rps.data.sealerList
+              })
+              getObserverList(this.TotalTransaction.groupId).then(rps =>{
+                console.log(rps)
+                this.ObserverList = rps.data.ObserverList
               })
           })
           loadingInstance.close();  
@@ -266,6 +293,7 @@ export default {
         this.BlockNumbeCount =[];
         this.tableData = [];
         this.BlockList = [];
+        this.ObserverList = [];
          let loadingInstance = Loading.service(this.options);
          this.$nextTick(() =>{
           getTotalTransactionCount(this.TotalTransaction).then(response =>{
@@ -281,12 +309,16 @@ export default {
           getBlockNumbeCount(this.TotalTransaction.groupId).then(rps =>{
             this.BlockNumbeCount = rps.data
           })
-          getGroupInfoList(this.TotalTransaction.groupId).then(rps =>{
-            this.tableData = rps.data
+          getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
+            this.tableData = rps.data.sealerList
             getBeta().then(rps =>{
               this.BlockList = rps.data
             })
           })
+          getObserverList(this.TotalTransaction.groupId).then(rps =>{
+                console.log(rps)
+                this.ObserverList = rps.data.ObserverList
+              })
           loadingInstance.close();
          })
       },
