@@ -162,33 +162,44 @@
           <el-table-column
             label="操作"
             align="center"
-            width="160"
+            width="220"
             class-name="small-padding fixed-width"
           >
-            <template slot-scope="scope" v-if="scope.row.userId !== 1">
-              <el-button
-                size="mini"
-                type="text"
-                icon="el-icon-edit"
-                @click="handleUpdate(scope.row)"
-                v-hasPermi="['system:user:edit']"
-              >修改</el-button>
-              <el-button
-                size="mini"
-                type="text"
-                icon="el-icon-delete"
-                @click="handleDelete(scope.row)"
-                v-hasPermi="['system:user:remove']"
-              >删除</el-button>
-              <el-dropdown size="mini" @command="(command) => handleCommand(command, scope.row)" v-hasPermi="['system:user:resetPwd', 'system:user:edit']">
-                <el-button size="mini" type="text" icon="el-icon-d-arrow-right">更多</el-button>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="handleResetPwd" icon="el-icon-key"
-                    v-hasPermi="['system:user:resetPwd']">重置密码</el-dropdown-item>
-                  <el-dropdown-item command="handleAuthRole" icon="el-icon-circle-check"
-                    v-hasPermi="['system:user:edit']">分配角色</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
+            <template slot-scope="scope">
+              <template>
+                <el-button
+                  size="mini"
+                  type="text"
+                  icon="el-icon-edit"
+                  @click="create(scope.row.userId)"
+                  v-hasPermi="['system:user:edit']"
+                >国密账号</el-button>
+              </template>
+              <template v-if="scope.row.userId !== 1">
+                <el-button
+                  size="mini"
+                  type="text"
+                  icon="el-icon-edit"
+                  @click="handleUpdate(scope.row)"
+                  v-hasPermi="['system:user:edit']"
+                >修改</el-button>
+                <el-button
+                  size="mini"
+                  type="text"
+                  icon="el-icon-delete"
+                  @click="handleDelete(scope.row)"
+                  v-hasPermi="['system:user:remove']"
+                >删除</el-button>
+                <el-dropdown size="mini" @command="(command) => handleCommand(command, scope.row)" v-hasPermi="['system:user:resetPwd', 'system:user:edit']">
+                  <el-button size="mini" type="text" icon="el-icon-d-arrow-right">更多</el-button>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="handleResetPwd" icon="el-icon-key"
+                      v-hasPermi="['system:user:resetPwd']">重置密码</el-dropdown-item>
+                    <el-dropdown-item command="handleAuthRole" icon="el-icon-circle-check"
+                      v-hasPermi="['system:user:edit']">分配角色</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </template>
             </template>
           </el-table-column>
         </el-table>
@@ -338,11 +349,48 @@
         <el-button @click="upload.open = false">取 消</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="国密账号" :visible.sync="createuserOpen" append-to-body>
+      <el-table
+          v-if="refreshTable"
+          :data="createuserList"
+          v-loading="loading"
+          height="180"
+          >
+          <el-table-column
+            prop="address"
+            label="账号地址">
+          </el-table-column>
+          <el-table-column
+            label="建立时间">
+            <template slot-scope="scope">
+              <span>{{ parseTime(scope.row.createTime) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            label="加密算法" prop="curveName" width="100">
+          </el-table-column>
+          <el-table-column
+            label="账号公钥" prop="publicKey">
+          </el-table-column>
+          <el-table-column
+            label="所属群组" prop="groupId" width="100">
+          </el-table-column>
+      </el-table>
+      <el-form ref="form" :model="createform" :rules="rules" style="margin-top: 10px;">
+        <el-select v-model="createform.groupId" placeholder="群组">
+           <el-option v-for="dept in group" :label="dept.groupId" :value="dept.groupId" :key="dept.id"></el-option>
+        </el-select>
+      </el-form>  
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="addCreate">生成</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listUser, getUser, delUser, addUser, updateUser, resetUserPwd, changeUserStatus, deptTreeSelect } from "@/api/system/user";
+import { listUser, getUser, delUser, addUser, updateUser, resetUserPwd, changeUserStatus, deptTreeSelect,getcreateUser,CreateUser } from "@/api/system/user";
+import { groupList } from "@/api/system/chain";
 import { getToken } from "@/utils/auth";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
@@ -355,6 +403,11 @@ export default {
     return {
       // 遮罩层
       loading: true,
+      // 国密表单开关
+      createuserOpen: false,
+      refreshTable: true,
+      // 群组数据
+      group: [],
       // 选中数组
       ids: [],
       // 非单个禁用
@@ -383,8 +436,13 @@ export default {
       postOptions: [],
       // 角色选项
       roleOptions: [],
+      // 国密账号列表
+      createuserList: [],
       // 表单参数
       form: {},
+      createform:{
+        groupId: undefined
+      },
       defaultProps: {
         children: "children",
         label: "label"
@@ -503,6 +561,25 @@ export default {
       }).catch(function() {
         row.status = row.status === "0" ? "1" : "0";
       });
+    },
+    //生成链上的国密账户
+    create(userId){
+      this.createform = {
+        groupId: undefined,
+        userId: userId
+      }
+      getcreateUser(userId).then(rps => {
+        this.createuserList = rps.data
+        this.createuserOpen = true
+      })
+      groupList().then(response => {
+        this.group = response;
+      })
+    },
+    addCreate(){
+      CreateUser(this.createform).then(rps => {
+        this.create(this.createform.userId)
+      })
     },
     // 取消按钮
     cancel() {

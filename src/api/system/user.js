@@ -18,6 +18,23 @@ export function getUser(userId) {
   })
 }
 
+// 查询国密账户
+export function getcreateUser(userId) {
+  return request({
+    url: '/chain/getcreateUser/' + userId,
+    method: 'get'
+  })
+}
+
+// 查询国密账户
+export function CreateUser(groupId) {
+  return request({
+    url: '/chain/CreateUser' ,
+    method: 'post',
+    params: groupId
+  })
+}
+
 // 新增用户
 export function addUser(data) {
   return request({
