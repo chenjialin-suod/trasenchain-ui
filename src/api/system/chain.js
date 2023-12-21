@@ -17,6 +17,15 @@ export function getChain(Id) {
   })
 }
 
+//为群组增加初始治理账号
+export function setCreate(data) {
+  return request({
+    url: '/chain/setCreate',
+    method: 'post',
+    params: data
+  })
+}
+
 //获取群组列表
 export function groupList() {
   return request({

@@ -74,6 +74,7 @@
                   </el-button>
                 </template>
               </el-table-column>
+              <el-table-column label="初始治理账号地址" align="center" prop="address"/>
               <el-table-column label="是否开启国密" align="center" width="100">
                 <template slot-scope="scope">
                   <el-tag v-if="scope.row.smCrypto===1" type="success">开启</el-tag>
@@ -93,25 +94,13 @@
               </el-table-column>
               <el-table-column label="详细信息" align="center" class-name="small-padding fixed-width">
                 <template slot-scope="scope">
-                  <el-descriptions class="margin-top" :column="1" size="mini" border>
-                    <!-- <el-descriptions-item v-if="scope.row.sysDept.length!==0" v-for="dept in scope.row.sysDept">
-                        <template slot="label">
-                          <i class="el-icon-user"></i>
-                          部门
-                        </template>
-                        {{dept.deptName}}
-                    </el-descriptions-item> -->
-                    <el-descriptions-item v-if="scope.row.webaseNetworkVO.length!==0" v-for="webase in scope.row.webaseNetworkVO">
-                        <template slot="label">
-                          <i class="el-icon-user"></i>
-                          节点
-                        </template>
-                        {{webase.node + ':' + webase.port}}
-                    </el-descriptions-item>
-                  </el-descriptions>
+                  <el-table v-loading="loadingNode" :data="scope.row.webaseNetworkVO">
+                    <el-table-column label="节点" align="center" prop="node" />
+                    <el-table-column label="端口" align="center" prop="port" width="150"/>
+                  </el-table>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" align="center" width="220">
+              <el-table-column label="操作" align="center" width="250">
                 <template slot-scope="scope" v-if="scope.row.roleId !== 1">
                   <el-button
                     size="mini"
@@ -121,14 +110,14 @@
                     v-hasPermi="['system:network:groupId']"
                     >节点绑定
                   </el-button>
-                  <!-- <el-button
+                  <el-button
                     size="mini"
                     type="text"
                     icon="el-icon-search"
-                    @click="GetBeta(scope.row.groupId)"
-                    v-hasPermi="['system:data:list']"
-                    >区高查询
-                  </el-button> -->
+                    @click="addCreate(scope.row.groupId)"
+                    v-hasPermi="['system:add:create']"
+                    >初始治理账号
+                  </el-button>
                   <el-button
                     size="mini"
                     type="text"
@@ -172,6 +161,26 @@
         <div slot="footer" class="dialog-footer">
           <el-button type="primary" @click="submitForm">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
+        </div>
+      </el-dialog>
+      <!-- 增加初始治理账号 -->
+      <el-dialog :title="title" :visible.sync="createpen" width="600px" append-to-body>
+        <el-form ref="form" :model="Create" :rules="rules" label-width="100px">
+          <el-row>
+            <el-col :span="24">
+              <el-form-item label="账号地址" prop="address" >
+                <el-input v-model="Create.address" placeholder="请输入账号地址" maxlength="50" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="5个证书文件" prop="publicKey">
+                <fileUpload v-model="Create.publicKey"/>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="addCreateList">确 定</el-button>
         </div>
       </el-dialog>
       <!-- 节点绑定对话框 -->
@@ -271,7 +280,7 @@
   
   <script>
   import { listGroup,delNetwork,delGroup,listNode,WebaseNetwork,setGroupNetwork,editNetWork,addGrouplist,getNetworkDept,addDeptNetwork} from "@/api/system/group";
-  import { groupList } from "@/api/system/chain";
+  import { groupList,setCreate } from "@/api/system/chain";
   import { getNetwork } from "@/api/system/blocknumbe";
   import { listDept } from "@/api/system/dept";
   import { Loading } from 'element-ui';
@@ -290,6 +299,7 @@
         loadingdata: true,
         loadingNode: true,
         Peeropen: false,
+        createpen:false,
         open:false,
         // 重新渲染表格状态
         refreshTable: true,
@@ -347,6 +357,12 @@
           pageSize: 10,
           groupId: undefined
         },
+        // 查询参数
+        Create: {
+          groupId:undefined,
+          publicKey:undefined,
+          address:undefined
+        },
         // 表单参数
         form: {},
         defaultProps: {
@@ -389,10 +405,16 @@
             { required: true, message: "请选择部门", trigger: "blur" }
           ],
           minrow:[
-          { required: true, message: "请输入最小值", trigger: "blur" }
+            { required: true, message: "请输入最小值", trigger: "blur" }
           ],
           maxrow:[
-          { required: true, message: "请输入最大值", trigger: "blur" }
+            { required: true, message: "请输入最大值", trigger: "blur" }
+          ],
+          address:[
+            { required: true, message: "请输入账号地址", trigger: "blur" }
+          ],
+          publicKey:[
+            {required: true, message: "请上传账号文件", trigger: "blur"}
           ]
         },
         options: {
@@ -545,6 +567,30 @@
             this.Peeropen = true;
             loadingInstance.close();  
           })
+        })
+      },
+      //上传初始治理账号
+      addCreate(groupId){
+        this.Create.groupId = groupId
+        this.createpen = true
+      },
+      addCreateList: function(){
+        this.$refs["form"].validate(valid => {
+          if (valid) {
+            this.options.text = "上传初始治理账号";
+            let loadingInstance = Loading.service(this.options);
+            this.$nextTick(() =>{
+              setCreate(this.Create).then(response=>{
+                this.createpen = false;
+                this.Create = {
+                  groupId:undefined,
+                  publicKey:undefined,
+                  address:undefined
+                };
+              })
+              loadingInstance.close();  
+            })
+          }
         })
       },
       /** 提交按钮 */
