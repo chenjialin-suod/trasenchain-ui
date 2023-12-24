@@ -27,7 +27,8 @@
                   <div class="card-panel-text">
                     块高数量
                   </div>
-                  <count-to :start-val="0" :end-val="this.Count.blockNumber" :duration="3000" class="card-panel-num" />
+                  <count-to  v-if="this.Count.blockNumber !==undefined" :start-val="0" :end-val="this.Count.blockNumber" :duration="3000" class="card-panel-num" />
+                  <count-to  v-if="this.Count.blockNumber ===undefined" :start-val="0" :end-val="0" :duration="3000" class="card-panel-num" />
                 </div>
               </div>
           </el-col>
@@ -40,7 +41,8 @@
                 <div class="card-panel-text">
                   异常区块数量
                 </div>
-                <count-to :start-val="0" :end-val="this.Count.failedTransactionCount" :duration="3200" class="card-panel-num" />
+                <count-to v-if="this.Count.failedTransactionCount !== undefined" :start-val="0" :end-val="this.Count.failedTransactionCount" :duration="3200" class="card-panel-num" />
+                <count-to v-if="this.Count.failedTransactionCount === undefined" :start-val="0" :end-val="0" :duration="3200" class="card-panel-num" />
               </div>
             </div>
           </el-col>
@@ -53,7 +55,8 @@
                   <div class="card-panel-text">
                     异常交易数量
                   </div>
-                  <count-to :start-val="0" :end-val="this.pendingTxSize" :duration="3200" class="card-panel-num" />
+                  <count-to v-if="this.pendingTxSize !==undefined" :start-val="0" :end-val="this.pendingTxSize" :duration="3200" class="card-panel-num" />
+                  <count-to v-if="this.pendingTxSize ===undefined" :start-val="0" :end-val="0" :duration="3200" class="card-panel-num" />
                 </div>
               </div>
             </el-col>

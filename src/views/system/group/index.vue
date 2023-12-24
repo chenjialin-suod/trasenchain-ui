@@ -74,7 +74,7 @@
                   </el-button>
                 </template>
               </el-table-column>
-              <el-table-column label="初始治理账号地址" align="center" prop="address"/>
+              <el-table-column label="初始治理账号地址" align="center" prop="address" width="170"/>
               <el-table-column label="是否开启国密" align="center" width="100">
                 <template slot-scope="scope">
                   <el-tag v-if="scope.row.smCrypto===1" type="success">开启</el-tag>
@@ -173,7 +173,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="24">
-              <el-form-item label="5个证书文件" prop="publicKey">
+              <el-form-item label="证书文件" prop="publicKey">
                 <fileUpload v-model="Create.publicKey"/>
               </el-form-item>
             </el-col>
@@ -587,6 +587,8 @@
                   publicKey:undefined,
                   address:undefined
                 };
+                this.getGroup();
+              this.getNode();
               })
               loadingInstance.close();  
             })
@@ -621,12 +623,14 @@
                 this.$modal.msgSuccess("节点修改成功");
                 this.nodeopen = false;
                 this.getNode();
+                this.formlist = {};
               });
             } else {
               WebaseNetwork(this.formlist).then(response => {
                 this.$modal.msgSuccess("节点新增成功");
                 this.nodeopen = false;
                 this.getNode();
+                this.formlist = {};
               });
             }
             loadingInstance.close();  

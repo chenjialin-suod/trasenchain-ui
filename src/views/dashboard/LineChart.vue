@@ -27,7 +27,7 @@ export default {
       default: true
     },
     chartData: {
-      type: [],
+      type: Array,
       required: true
     }
   },
