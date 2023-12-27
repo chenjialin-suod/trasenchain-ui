@@ -32,7 +32,33 @@
                     icon="el-icon-edit"
                     @click="AddObserver(scope.row.nodeID)"
                     v-hasPermi="['system:node:add']"
-                >修改</el-button>
+                >更改为观察节点</el-button>
+                </template>
+          </el-table-column>
+        </el-table>
+        <el-table
+          v-if="refreshTable"
+          :data="ObserverList"
+          v-loading="loading"
+          >
+          <el-table-column
+            prop="nodeId"
+            label="节点（地址）">
+          </el-table-column>
+          <el-table-column
+            label="区高" width="180">
+            {{Count.result}}
+          </el-table-column>
+          <el-table-column
+            label="操作" align="center" width="180" class-name="small-padding fixed-width">
+                <template slot-scope="scope">
+                <el-button
+                    size="mini"
+                    type="text"
+                    icon="el-icon-edit"
+                    @click="AddSealer(scope.row.nodeId)"
+                    v-hasPermi="['system:node:add']"
+                >更改为共识节点</el-button>
                 </template>
           </el-table-column>
         </el-table>
@@ -40,7 +66,7 @@
 </template>
 <script>
 import { groupList } from "@/api/system/chain";
-import { getConsensusStatus,getBeta,getBlockHeight,addObserver} from "@/api/system/blocknumbe";
+import { getConsensusStatus,getBeta,getBlockHeight,addObserver,getObserverList,addSealer} from "@/api/system/blocknumbe";
 import { Loading } from 'element-ui';
 export default {
     name: "node",
@@ -60,6 +86,7 @@ export default {
         fileList: [],
         tableData:[],
         BlockNumbeCount:[],
+        ObserverList:[],
         formlist: [],
         //节点
         nodes: {
@@ -134,7 +161,10 @@ export default {
                 getBeta().then(rps =>{
                 this.BlockList = rps.data
                 })
-                loadingInstance.close();
+            })
+            getObserverList(this.TotalTransaction.groupId).then(rps =>{
+              this.ObserverList = rps.data
+              loadingInstance.close();
             })
             this.loading = false;
          })
@@ -146,7 +176,29 @@ export default {
           groupId:this.TotalTransaction.groupId
         }
         addObserver(data).then(rps =>{
-          console.log(rps)
+          if(rps.code==200){
+              this.$message({
+                  type: 'success',
+                  message: rps.msg
+              });
+          }
+          this.getGroup()
+        })
+      },
+      //将指定节点添加为共识节点
+      AddSealer(nodeId){
+        let data = {
+          nodeId:nodeId,
+          groupId:this.TotalTransaction.groupId
+        }
+        addSealer(data).then(rps =>{
+          if(rps.code==200){
+              this.$message({
+                  type: 'success',
+                  message: rps.msg
+              });
+          }
+          this.getGroup()
         })
       }
     }

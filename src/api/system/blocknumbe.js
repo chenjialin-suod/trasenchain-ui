@@ -113,6 +113,15 @@ export function addObserver(data){
   })
 }
 
+//将指定节点添加为共识节点
+export function addSealer(data){
+  return request({
+    url: '/chain/addSealer',
+    method: 'post',
+    params: data
+  })
+}
+
 //获取当前群组的节点信息列表--观察
 export function getObserverList(groupId){
   return request({

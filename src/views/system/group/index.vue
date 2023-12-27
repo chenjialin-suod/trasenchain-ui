@@ -116,7 +116,7 @@
                     icon="el-icon-search"
                     @click="addCreate(scope.row.groupId)"
                     v-hasPermi="['system:add:create']"
-                    >初始治理账号
+                    >初始化账号
                   </el-button>
                   <el-button
                     size="mini"
@@ -166,15 +166,38 @@
       <!-- 增加初始治理账号 -->
       <el-dialog :title="title" :visible.sync="createpen" width="600px" append-to-body>
         <el-form ref="form" :model="Create" :rules="rules" label-width="100px">
-          <el-row>
+          <el-form-item label="初始化方式">
+            <el-radio-group v-model="Create.radio">
+              <el-radio :label="1">pem文件初始化</el-radio>
+              <el-radio :label="2">公私钥对初始化</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-row v-if="Create.radio===1">
             <el-col :span="24">
               <el-form-item label="账号地址" prop="address" >
-                <el-input v-model="Create.address" placeholder="请输入账号地址" maxlength="50" />
+                <el-input v-model="Create.address" placeholder="请输入账号地址"/>
               </el-form-item>
             </el-col>
             <el-col :span="24">
               <el-form-item label="证书文件" prop="publicKey">
-                <fileUpload v-model="Create.publicKey"/>
+                <fileUpload v-model="Create.filaPath"/>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row v-if="Create.radio===2">
+            <el-col :span="24">
+              <el-form-item label="账号地址" prop="address" >
+                <el-input v-model="Create.address" placeholder="请输入账号地址" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="公钥" prop="publicHex">
+                <el-input v-model="Create.publicHex" placeholder="请输入公钥"/>
+              </el-form-item>
+            </el-col>
+            <el-col :span="24">
+              <el-form-item label="私钥" prop="privateHex">
+                <el-input v-model="Create.privateHex" placeholder="请输入私钥" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -360,8 +383,11 @@
         // 查询参数
         Create: {
           groupId:undefined,
-          publicKey:undefined,
-          address:undefined
+          filaPath:undefined,
+          address:undefined,
+          privateHex:undefined,
+          publicHex:undefined,
+          radio:1
         },
         // 表单参数
         form: {},
@@ -413,9 +439,15 @@
           address:[
             { required: true, message: "请输入账号地址", trigger: "blur" }
           ],
-          publicKey:[
+          filaPath:[
             {required: true, message: "请上传账号文件", trigger: "blur"}
-          ]
+          ],
+          privateHex:[
+            {required: true, message: "私钥不能为空", trigger: "blur"}
+          ],
+          publicHex:[
+            {required: true, message: "公钥不能为空", trigger: "blur"}
+          ],
         },
         options: {
           lock: true,
@@ -584,11 +616,14 @@
                 this.createpen = false;
                 this.Create = {
                   groupId:undefined,
-                  publicKey:undefined,
-                  address:undefined
+                  filaPath:undefined,
+                  address:undefined,
+                  privateHex:undefined,
+                  publicHex:undefined,
+                  radio:undefined
                 };
                 this.getGroup();
-              this.getNode();
+                this.getNode();
               })
               loadingInstance.close();  
             })

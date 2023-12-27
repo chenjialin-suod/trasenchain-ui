@@ -17,6 +17,15 @@ export function getChain(Id) {
   })
 }
 
+//查询合约-查看详情
+export function updateGovernor(data) {
+  return request({
+    url: '/chain/updateGovernor',
+    method: 'post',
+    params: data
+  })
+}
+
 //为群组增加初始治理账号
 export function setCreate(data) {
   return request({

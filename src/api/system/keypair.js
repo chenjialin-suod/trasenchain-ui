@@ -8,3 +8,12 @@ export function getUserPoList(query) {
       params: query
     })
   }
+
+// 将指定用户更改为治理委员
+export function getupdateGovernor(data) {
+  return request({
+    url: '/chain/updateGovernor',
+    method: 'post',
+    params: data
+  })
+}

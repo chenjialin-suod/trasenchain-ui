@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 获取群组列表
 export function listGroup(query) {
   return request({
-    url: '/chain/1',
+    url: '/chain/groupList',
     method: 'get',
     params: query
   })

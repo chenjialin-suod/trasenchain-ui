@@ -172,7 +172,7 @@
                   type="text"
                   icon="el-icon-edit"
                   @click="create(scope.row.userId)"
-                  v-hasPermi="['system:user:edit']"
+                  v-hasPermi="['system:user:CreateUser']"
                 >国密账号</el-button>
               </template>
               <template v-if="scope.row.userId !== 1">

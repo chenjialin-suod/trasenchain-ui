@@ -109,7 +109,7 @@
           :data="ObserverList"
           style="width: 100%;margin-top: -38px">
           <el-table-column
-            prop="nodeID"
+            prop="nodeId"
             label="观察节点">
           </el-table-column>
           <el-table-column
@@ -277,16 +277,15 @@ export default {
               this.group = response;
               this.TotalTransaction.groupId =  this.group[0].groupId
               this.TotalTransactionCount(this.TotalTransaction)
-              getBlockNumbeCount(this.TotalTransaction.groupId).then(rps =>{
-                this.BlockNumbeCount = rps.data
-              })
-              getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
-                this.tableData = rps.data.sealerList
-              })
-              getObserverList(this.TotalTransaction.groupId).then(rps =>{
-                console.log(rps)
-                this.ObserverList = rps.data.ObserverList
-              })
+              // getBlockNumbeCount(this.TotalTransaction.groupId).then(rps =>{
+              //   this.BlockNumbeCount = rps.data
+              // })
+              // getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
+              //   this.tableData = rps.data.sealerList
+              // })
+              // getObserverList(this.TotalTransaction.groupId).then(rps =>{
+              //   this.ObserverList = rps.data.observerList
+              // })
           })
           loadingInstance.close();  
         })
@@ -320,8 +319,7 @@ export default {
             })
           })
           getObserverList(this.TotalTransaction.groupId).then(rps =>{
-                console.log(rps)
-                this.ObserverList = rps.data.ObserverList
+                this.ObserverList = rps.data
               })
           loadingInstance.close();
          })

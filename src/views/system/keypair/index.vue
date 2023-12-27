@@ -43,6 +43,12 @@
         <el-table-column prop="curveName" label="加密方式" width="100"></el-table-column>
         <el-table-column prop="publicKey" label="公钥"></el-table-column>
         <el-table-column prop="getKeyPair" label="私钥"></el-table-column>
+        <el-table-column label="是否为链委员" align="center" width="120">
+          <template slot-scope="scope">
+              <el-tag v-if="scope.row.governor===1" type="success">是</el-tag>
+              <el-tag v-if="scope.row.governor===2" type="danger">否</el-tag>
+          </template>
+        </el-table-column>
         <!-- <el-table-column prop="contractType" label="合约类型">
             <template slot-scope="scope">
                 <el-tag v-if="scope.row.contractType===0" type="success">系统合约</el-tag>
@@ -54,15 +60,23 @@
             <span>{{ parseTime(scope.row.createTime) }}</span>
             </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="100">
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="200">
             <template slot-scope="scope">
             <el-button
                 size="mini"
                 type="text"
                 icon="el-icon-edit"
-                @click="handleUpdate(scope.row.id)"
+                @click="adddateGovernor(scope.row.groupId,scope.row.userId,1)"
+                v-loading.fullscreen.lock="fullscreenLoading"
+                v-hasPermi="['system:user:updateGovernor']"
+            >加入链委员</el-button>
+            <el-button
+                size="mini"
+                type="text"
+                icon="el-icon-edit"
+                @click="adddateGovernor(scope.row.groupId,scope.row.userId,0)"
                 v-hasPermi="['system:chain:get']"
-            >查看详情</el-button>
+            >移除链委员</el-button>
             <!-- <el-button
                 size="mini"
                 type="text"
@@ -83,7 +97,7 @@
     </div>
 </template>
 <script>
-import { getUserPoList } from "@/api/system/keypair";
+import { getUserPoList,getupdateGovernor } from "@/api/system/keypair";
 import { Loading } from 'element-ui';
 export default {
     name: "node",
@@ -91,6 +105,7 @@ export default {
       return {
         open: false,
         loading: true,
+        fullscreenLoading: false,
         // 重新渲染表格状态
         refreshTable: true,
         // 显示搜索条件
@@ -127,11 +142,38 @@ export default {
       /** 查询用户私钥列表 */
       getUserPo(){
         this.loading = true;
+        this.UserPoList = [];
         getUserPoList(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
           this.UserPoList = response.rows
           this.total = response.total
           this.loading = false;
         });
+      },
+      /** 将指定用户更改为治理委员 */
+      adddateGovernor(groupId,userId,weight){
+        this.fullscreenLoading = true;
+        setTimeout(() => {
+          let data = {
+            groupId:groupId,
+            userId:userId,
+            weight:weight
+          }
+          this.$alert('确定更改吗', '提示', {
+            confirmButtonText: '确定',
+            callback: action => {
+              getupdateGovernor(data).then(rps =>{
+                if(rps.code==200){
+                  this.$message({
+                    type: 'success',
+                    message: rps.msg
+                  });
+                }
+                this.getUserPo();
+              })
+            }
+          });
+        }, 2000);
+        this.fullscreenLoading = false;
       },
        /** 搜索按钮操作 */
        handleQuery() {
