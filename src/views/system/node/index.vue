@@ -14,7 +14,7 @@
           >
           <el-table-column
             prop="nodeID"
-            label="节点（地址）">
+            label="共识节点（地址）">
           </el-table-column>
           <el-table-column
             label="区高" width="180">
@@ -36,6 +36,7 @@
                 </template>
           </el-table-column>
         </el-table>
+
         <el-table
           v-if="refreshTable"
           :data="ObserverList"
@@ -43,7 +44,7 @@
           >
           <el-table-column
             prop="nodeId"
-            label="节点（地址）">
+            label="观察节点（地址）">
           </el-table-column>
           <el-table-column
             label="区高" width="180">
@@ -62,11 +63,38 @@
                 </template>
           </el-table-column>
         </el-table>
+
+        <el-table
+          v-if="refreshTable"
+          :data="nodeInfo"
+          v-loading="loading"
+          >
+          <el-table-column
+            prop="nodeId"
+            label="新添加的节点（地址）">
+          </el-table-column>
+          <el-table-column
+            label="区高" width="180">
+            {{Count.result}}
+          </el-table-column>
+          <el-table-column
+            label="操作" align="center" width="180" class-name="small-padding fixed-width">
+                <template slot-scope="scope">
+                  <el-button
+                    size="mini"
+                    type="text"
+                    icon="el-icon-edit"
+                    @click="AddObserver(scope.row.nodeId)"
+                    v-hasPermi="['system:node:add']"
+                >更改为观察节点</el-button>
+                </template>
+          </el-table-column>
+        </el-table>
     </div>
 </template>
 <script>
 import { groupList } from "@/api/system/chain";
-import { getConsensusStatus,getBeta,getBlockHeight,addObserver,getObserverList,addSealer} from "@/api/system/blocknumbe";
+import { getGroupNodeInfo,getConsensusStatus,getBeta,getBlockHeight,addObserver,getObserverList,addSealer} from "@/api/system/blocknumbe";
 import { Loading } from 'element-ui';
 export default {
     name: "node",
@@ -79,6 +107,7 @@ export default {
         // 群组数据
         groupList: [],
         BlockHash: [],
+        nodeInfo:[],
         //节点数据
         nodeList: [],
         BlockList: [],
@@ -138,9 +167,9 @@ export default {
               this.group = response;
               this.TotalTransaction.groupId =  this.group[0].groupId
               this.TotalTransactionCount(this.TotalTransaction)
-              getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
-                this.tableData = rps.data.sealerList
-              })
+              // getConsensusStatus(this.TotalTransaction.groupId).then(rps =>{
+              //   this.tableData = rps.data.sealerList
+              // })
           })
           loadingInstance.close();  
         })
@@ -151,7 +180,7 @@ export default {
         this.BlockNumbeCount =[];
         this.tableData = [];
         this.BlockList = [];
-         let loadingInstance = Loading.service(this.options);
+        let loadingInstance = Loading.service(this.options);
          this.$nextTick(() =>{
             getBlockHeight(this.TotalTransaction.groupId).then(rps =>{
                 this.Count.result = rps.data.result
@@ -164,6 +193,9 @@ export default {
             })
             getObserverList(this.TotalTransaction.groupId).then(rps =>{
               this.ObserverList = rps.data
+            })
+            getGroupNodeInfo(this.TotalTransaction.groupId).then(rps =>{
+              this.nodeInfo= rps.data
               loadingInstance.close();
             })
             this.loading = false;
@@ -175,14 +207,21 @@ export default {
           nodeId:nodeId,
           groupId:this.TotalTransaction.groupId
         }
-        addObserver(data).then(rps =>{
-          if(rps.code==200){
+        this.options.text="修改中"
+        let loadingInstance = Loading.service(this.options);
+        this.$nextTick(() =>{
+          addObserver(data).then(rps =>{
+            if(rps.code===200){
+              loadingInstance.close();
               this.$message({
-                  type: 'success',
-                  message: rps.msg
+                type: 'success',
+                message: rps.msg
               });
-          }
-          this.getGroup()
+            }else{
+              loadingInstance.close();
+            }
+            this.getGroup()
+          })
         })
       },
       //将指定节点添加为共识节点
@@ -191,14 +230,21 @@ export default {
           nodeId:nodeId,
           groupId:this.TotalTransaction.groupId
         }
-        addSealer(data).then(rps =>{
-          if(rps.code==200){
+        this.options.text="修改中"
+        let loadingInstance = Loading.service(this.options);
+        this.$nextTick(() =>{
+          addSealer(data).then(rps =>{
+            if(rps.code===200){
+              loadingInstance.close();
               this.$message({
-                  type: 'success',
-                  message: rps.msg
+                type: 'success',
+                message: rps.msg
               });
-          }
-          this.getGroup()
+            }else{
+              loadingInstance.close();
+            }
+            this.getGroup()
+          })
         })
       }
     }

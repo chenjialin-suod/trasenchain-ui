@@ -147,7 +147,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="npc端口" prop="port">
+              <el-form-item label="rpc端口" prop="port">
                 <el-input v-model="formlist.port" placeholder="请输入节点端口号" maxlength="50" />
               </el-form-item>
             </el-col>
@@ -168,11 +168,11 @@
         <el-form ref="form" :model="Create" :rules="rules" label-width="100px">
           <el-form-item label="初始化方式">
             <el-radio-group v-model="Create.radio">
-              <el-radio :label="1">pem文件初始化</el-radio>
+              <!-- <el-radio :label="1">pem文件初始化</el-radio> -->
               <el-radio :label="2">公私钥对初始化</el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-row v-if="Create.radio===1">
+          <!-- <el-row v-if="Create.radio===1">
             <el-col :span="24">
               <el-form-item label="账号地址" prop="address" >
                 <el-input v-model="Create.address" placeholder="请输入账号地址"/>
@@ -183,7 +183,7 @@
                 <fileUpload v-model="Create.filaPath"/>
               </el-form-item>
             </el-col>
-          </el-row>
+          </el-row> -->
           <el-row v-if="Create.radio===2">
             <el-col :span="24">
               <el-form-item label="账号地址" prop="address" >
@@ -387,7 +387,7 @@
           address:undefined,
           privateHex:undefined,
           publicHex:undefined,
-          radio:1
+          radio:2
         },
         // 表单参数
         form: {},
@@ -613,6 +613,9 @@
             let loadingInstance = Loading.service(this.options);
             this.$nextTick(() =>{
               setCreate(this.Create).then(response=>{
+                if(response.code){
+                  loadingInstance.close();
+                }
                 this.createpen = false;
                 this.Create = {
                   groupId:undefined,
@@ -625,7 +628,6 @@
                 this.getGroup();
                 this.getNode();
               })
-              loadingInstance.close();  
             })
           }
         })

@@ -130,6 +130,14 @@ export function getObserverList(groupId){
   })
 }
 
+//查询一个群组节点连接列表
+export function getGroupNodeInfo(groupId){
+  return request({
+    url: '/chain/getGroupNodeInfo/'+groupId,
+    method: 'get'
+  })
+}
+
 //查询区高数据
 export function getBeta(){
   return request({
