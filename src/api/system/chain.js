@@ -51,3 +51,21 @@ export function setDynam(contractCompileDto) {
     params: contractCompileDto
   })
 }
+
+// 获取群组列表
+export function multiPathList(req) {
+  return request({
+    url: '/contract/multiPath',
+    method: 'post',
+    data: req
+  })
+}
+
+//增加机构节点信息
+export function setContractPath(req) {
+  return request({
+    url: '/contract/addContractPath',
+    method: 'post',
+    params: req
+  })
+}
