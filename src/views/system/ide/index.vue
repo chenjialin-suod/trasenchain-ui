@@ -7,12 +7,12 @@
                         <el-aside width="95%">
                             <el-row>
                                 <el-col :span="3">
-                                    <el-tooltip class="item" effect="dark" content="新建文件" placement="top-start">
-                                        <i class="el-icon-document-add"></i>
+                                    <el-tooltip class="item" effect="dark" content="新建文件" placement="top-start" v-hasPermi="['system:contract:save']">
+                                        <i class="el-icon-document-add" @click = "addContract"></i>
                                     </el-tooltip>
                                 </el-col>
                                 <el-col :span="3">
-                                    <el-tooltip class="item" effect="dark" content="新建文件夹" placement="top-start">
+                                    <el-tooltip class="item" effect="dark" content="新建文件夹" placement="top-start" v-hasPermi="['system:contract:addPath']">
                                         <i class="el-icon-folder-add" @click = "addContractPath"></i>
                                     </el-tooltip>
                                 </el-col>
@@ -21,7 +21,7 @@
                                         <el-option v-for="dept in group" :label="dept.groupId" :value="dept.groupId" :key="dept.id"></el-option>
                                     </el-select>
                                 </el-col>
-                                <el-col :span="9">
+                                <el-col style="margin-left: 15px;" :span="8">
                                     <el-select v-model="req.groupId" :default-first-option="true" filterable @change="getmultiPathList" placeholder="群组">
                                         <el-option v-for="dept in group" :label="dept.groupId" :value="dept.groupId" :key="dept.id"></el-option>
                                     </el-select>
@@ -77,23 +77,44 @@
             </el-col>
         </el-row>
 
-        <!-- 新增文件夹或文件 -->
+        <!-- 新增文件夹 -->
         <el-dialog :title="title" :visible.sync="ContractPathpen" width="600px" append-to-body>
             <el-form ref="form" :model="reqContractPath" :rules="rules" label-width="100px">
             <el-row>
                 <el-col :span="24">
                     <el-form-item label="群组编号" prop="groupId" >
                         <!-- <el-input v-model="ReqContractPath.groupId" placeholder="请输入群组编号" maxlength="50" /> -->
-                        <el-select v-model="reqContractPath.groupId" :default-first-option="true" filterable placeholder="请选择群组编号">
+                        <el-select v-model="reqContractPath.groupId" :default-first-option="true" filterable placeholder="请选择群组编号" style="width: 100%">
                             <el-option v-for="dept in group" :label="dept.groupId" :value="dept.groupId" :key="dept.id"></el-option>
                         </el-select>
                     </el-form-item>
                 </el-col>
                 <el-col :span="24">
-                    <el-form-item label="所属目录" prop="contractPath" >
+                    <el-form-item label="所属目录" prop="contractPathId">
                         <!-- <el-input v-model="ReqContractPath.groupId" placeholder="请输入群组编号" maxlength="50" /> -->
-                        <el-select v-model="reqContractPath.contractPath" :default-first-option="true" filterable placeholder="请选择目录，根目录为/">
-                            <el-option v-for="dept in fileList" :label="dept.contractName" :value="dept.parentId" :key="dept.parentId"></el-option>
+                        <el-select class="main-select-tree" ref="selectTree" v-model="reqContractPath.Pathname" :default-first-option="true" style="width: 100%" filterable placeholder="请选择目录，根目录为/" name='option 1'>
+                            <el-option style="height: 100%; padding: 0;" value=""> 
+                                <el-tree class="main-select-el-tree" 
+                                 :data="fileList" 
+                                 :props='defaultProps'
+                                highlight-current
+                                @node-click="PathId"
+                                :expand-on-click-node="expandOnClickNode"
+                                default-expand-all
+                                style="font-weight: normal;">
+                                <span slot-scope="{ node, data }">
+                                    <template>
+                                        <i
+                                            :class="{
+                                                'el-icon-folder': !node.expanded,       // 节点收缩时的图标
+                                                'el-icon-folder-opened': node.expanded // 节点展开时的图标
+                                            }"
+                                        />
+                                        <span>{{ node.label }}</span>
+                                    </template>
+                                </span>
+                            </el-tree>
+                            </el-option>
                         </el-select>
                     </el-form-item>
                     <el-form-item label="文件名称" prop="contractName" >
@@ -102,6 +123,58 @@
                 </el-col>
                 <el-col :span="24">
                     <el-button type="primary" @click="handleNodeClick">确 定</el-button>
+                    <el-button @click="cancel">取 消</el-button>
+                </el-col>
+            </el-row>
+            </el-form>
+        </el-dialog>
+
+        <!-- 新增文件 -->
+        <el-dialog :title="title" :visible.sync="ContractPathpen" width="600px" append-to-body>
+            <el-form ref="form" :model="reqContractPath" :rules="rules" label-width="100px">
+            <el-row>
+                <el-col :span="24">
+                    <el-form-item label="群组编号" prop="groupId" >
+                        <!-- <el-input v-model="ReqContractPath.groupId" placeholder="请输入群组编号" maxlength="50" /> -->
+                        <el-select v-model="reqContractPath.groupId" :default-first-option="true" filterable placeholder="请选择群组编号" style="width: 100%">
+                            <el-option v-for="dept in group" :label="dept.groupId" :value="dept.groupId" :key="dept.id"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                    <el-form-item label="所属目录" prop="contractPathId">
+                        <!-- <el-input v-model="ReqContractPath.groupId" placeholder="请输入群组编号" maxlength="50" /> -->
+                        <el-select class="main-select-tree" ref="selectTree" v-model="reqContractPath.Pathname" :default-first-option="true" style="width: 100%" filterable placeholder="请选择目录，根目录为/" name='option 1'>
+                            <el-option style="height: 100%; padding: 0;" value=""> 
+                                <el-tree class="main-select-el-tree" 
+                                 :data="fileList" 
+                                 :props='defaultProps'
+                                highlight-current
+                                @node-click="PathId"
+                                :expand-on-click-node="expandOnClickNode"
+                                default-expand-all
+                                style="font-weight: normal;">
+                                <span slot-scope="{ node, data }">
+                                    <template>
+                                        <i
+                                            :class="{
+                                                'el-icon-folder': !node.expanded,       // 节点收缩时的图标
+                                                'el-icon-folder-opened': node.expanded // 节点展开时的图标
+                                            }"
+                                        />
+                                        <span>{{ node.label }}</span>
+                                    </template>
+                                </span>
+                            </el-tree>
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="文件名称" prop="contractName" >
+                        <el-input v-model="reqContractPath.contractName" placeholder="请输入目录或文件名称" maxlength="20" />
+                    </el-form-item>
+                </el-col>
+                <el-col :span="24">
+                    <el-button type="primary" @click="handleNodeClick1">确 定</el-button>
                     <el-button @click="cancel">取 消</el-button>
                 </el-col>
             </el-row>
@@ -117,7 +190,7 @@ import 'codemirror/theme/solarized.css'
 import 'codemirror/addon/selection/active-line.js'
 // closebrackets
 import 'codemirror/addon/edit/closebrackets.js'
-import { groupList,multiPathList,setContractPath } from "@/api/system/chain";
+import { groupList,multiPathList,setContractPath,saveContract } from "@/api/system/chain";
    export default {
     name: "ide",
     data() {
@@ -125,6 +198,7 @@ import { groupList,multiPathList,setContractPath } from "@/api/system/chain";
         java: "",
         menuList: [],
         treeList: [],
+        expandOnClickNode: true,
         fileList: [],
         title: undefined,
         group: [],
@@ -136,18 +210,13 @@ import { groupList,multiPathList,setContractPath } from "@/api/system/chain";
             groupId: undefined
         },
         ContractPathpen: false,
-        reqContractPath:{
-            groupId:undefined,
-            contractPath:undefined,
-            contractName:undefined,
-            contractStatus:undefined
-        },
+        reqContractPath:[],
          // 表单校验
          rules: {
             groupId: [
                 {required: true, message: "群组不能为空", trigger: "blur"}
             ],
-            contractPath: [
+            contractPathId: [
                 {required: true, message: "上级目录不能为空，如果为根目录，则选择‘/’ ", trigger: "blur"}
             ],
             contractName: [
@@ -185,7 +254,6 @@ import { groupList,multiPathList,setContractPath } from "@/api/system/chain";
             multiPathList(this.req.groupId).then(response => {
                 this.menuList = response.data
                 this.treeList = this.handleTree(response.data, "id")
-                console.log(this.menuList)
             })
         },
         addContractPath(){
@@ -193,20 +261,67 @@ import { groupList,multiPathList,setContractPath } from "@/api/system/chain";
             this.ContractPathpen = true;
             this.reqContractPath = {
                 groupId:undefined,
-                contractPath:undefined,
+                contractPathId:undefined,
+                Pathname: undefined,
                 contractName:undefined,
                 contractStatus:2
             }
-            this.fileList.push({contractName: '/',parentId:0})
-            this.menuList.forEach(element => {
-                this.fileList.push({contractName:element.contractName,parentId:element.id})
-            });
+            // var arr = [{contractName: '/',id:0,parentId:0}]
+            // this.fileList.push({contractName: '/',id:0,parentId:0})
+            // this.menuList.forEach(element => {
+            //     arr.push({contractName:element.contractName,id:element.id,parentId:element.parentId})
+            // });
+            if(this.treeList!==null || this.treeList.length !== 0){
+                this.fileList  = this.treeList
+            }
+            this.fileList.push({contractName: '/',id:0,parentId:0})
+        },
+        addContract(){
+            this.title = "新增合约文件"
+            this.ContractPathpen = true;
+            this.reqContractPath={
+                groupIdL:undefined,
+                contractId:undefined,
+                contractName:undefined,
+                version:undefined,
+                contractPathId:undefined,
+                contractSource:undefined,
+                contractAbi:undefined,
+                Pathname: undefined,
+                bytecodeBin:undefined,
+                contractBin:undefined,
+                contractAddress:undefined
+            }
+            // var arr = [{contractName: '/',id:0,parentId:0}]
+            // this.fileList.push({contractName: '/',id:0,parentId:0})
+            // this.menuList.forEach(element => {
+            //     arr.push({contractName:element.contractName,id:element.id,parentId:element.parentId})
+            // });
+            if(this.treeList!==null || this.treeList.length !== 0){
+                this.fileList  = this.treeList
+            }
+            this.fileList.push({contractName: '/',id:0,parentId:0})
         },
         handleNodeClick: function() {
             this.$refs["form"].validate(valid => {
                 if (valid) {
-                    console.log(this.reqContractPath)
-                    setContractPath(this.reqContractPath).then(response =>{
+                    const ReqContractPath = {
+                        groupId:this.reqContractPath.groupId,
+                        contractPath:this.reqContractPath.contractPath,
+                        contractName:this.reqContractPath.contractName,
+                        contractStatus:this.reqContractPath.contractStatus
+                    }
+                    setContractPath(ReqContractPath).then(response =>{
+                        this.getgroupList();
+                        this.ContractPathpen = false;
+                    })
+                }
+            })
+        },
+        handleNodeClick1: function() {
+            this.$refs["form"].validate(valid => {
+                if (valid) {
+                    saveContract(this.reqContractPath).then(response =>{
                         this.getgroupList();
                         this.ContractPathpen = false;
                     })
@@ -217,6 +332,13 @@ import { groupList,multiPathList,setContractPath } from "@/api/system/chain";
         getContract(data){
             console.log(data)
         },
+        //选择事件
+        PathId(node){
+            this.reqContractPath.contractPathId = node.id;
+            this.reqContractPath.Pathname = node.contractName
+            this.$refs.selectTree.blur();
+            // console.log(node);
+        },
         //取消
         cancel(){
             this.reqContractPath = {
@@ -225,9 +347,20 @@ import { groupList,multiPathList,setContractPath } from "@/api/system/chain";
                 contractName:undefined,
                 contractStatus:undefined
             }
+            this.getgroupList();
             this.ContractPathpen = false; 
         },
     }
 }
 </script>
-
+<style>
+.main-select-el-tree .el-tree-node .is-current>.el-tree-node__content {
+  font-weight: bold;
+  color: #409eff;
+}
+ 
+.main-select-el-tree .el-tree-node.is-current>.el-tree-node__content {
+  font-weight: bold;
+  color: #409eff;
+}
+</style>

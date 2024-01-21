@@ -334,7 +334,7 @@ export default {
     getList() {
       this.loading = true;
       listMenu(this.queryParams).then(response => {
-        this.menuList = this.handleTree(response.data, "id");
+        this.menuList = this.handleTree(response.data, "menuId");
         this.loading = false;
       });
     },

@@ -61,10 +61,18 @@ export function multiPathList(req) {
   })
 }
 
-//增加机构节点信息
+//新增文件夹
 export function setContractPath(req) {
   return request({
     url: '/contract/addContractPath',
+    method: 'post',
+    params: req
+  })
+}
+//新增文件
+export function saveContract(req) {
+  return request({
+    url: '/contract/save',
     method: 'post',
     params: req
   })
