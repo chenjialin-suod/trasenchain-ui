@@ -48,7 +48,7 @@ export function setDynam(contractCompileDto) {
   return request({
     url: '/chain/setDynamicDeployContract',
     method: 'post',
-    params: contractCompileDto
+    data: contractCompileDto
   })
 }
 
@@ -66,7 +66,7 @@ export function setContractPath(req) {
   return request({
     url: '/contract/addContractPath',
     method: 'post',
-    params: req
+    data: req
   })
 }
 //新增文件
@@ -74,6 +74,15 @@ export function saveContract(req) {
   return request({
     url: '/contract/save',
     method: 'post',
-    params: req
+    data: req
+  })
+}
+
+//编译合约
+export function contractCompile(req) {
+  return request({
+    url: '/contract/contractCompile',
+    method: 'post',
+    data: req
   })
 }

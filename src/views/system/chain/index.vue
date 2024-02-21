@@ -305,14 +305,16 @@
                     this.options.text = "合约部署中"
                     let loadingInstance = Loading.service(this.options);
                     this.$nextTick(() =>{
+                        this.formlist.contractAbi = btoa(this.formlist.contractAbi);
+                        this.formlist.contractBin = btoa(this.formlist.contractBin);
                         setDynam(this.formlist).then(response=>{
                             this.nodeopen = false;
                             this.$modal.msgSuccess("部署成功");
                             loadingInstance.close();
-                            this.geChian()
                         })
                     })
                 }
+                this.geChian();
             })
         },
         //取消
